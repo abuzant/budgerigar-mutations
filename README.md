@@ -326,7 +326,7 @@ The calculator includes comprehensive coverage of budgerigar mutations across mu
 
 ### HTML/JavaScript Version
 
-1. **Download**: Get the `budgerigar_calculator.html` file
+1. **Download**: Get the `Budgerigar Inheritance Calculator.html` file
 2. **Open**: Double-click to open in any modern web browser
 3. **Use**: Select parent characteristics and see real-time results
 4. **No Installation Required**: Works offline after initial download
