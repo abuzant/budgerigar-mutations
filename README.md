@@ -1,7 +1,7 @@
 # Budgerigar Mutation Calculator
 Budgerigar Mutation Calculator | Serverless
 
-![Budgerigar Calculator](https://i.imgur.com/example.jpg)
+![Budgerigar Calculator](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS5fNG3wc0hI5oyOxBWoApmI1Wuz1GQTi0YwQ&s)
 
 ## 📋 Table of Contents
 
