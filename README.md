@@ -24,11 +24,7 @@ Budgerigar Mutation Calculator | Serverless
 
 The Budgerigar Mutation Calculator is a comprehensive genetic prediction tool for budgerigar breeders and enthusiasts. It provides real-time genetic calculations to predict offspring characteristics based on parent mutations. The calculator uses established genetic principles to model complex inheritance patterns across over 30 different mutations, delivering accurate probability-based predictions instantly within the browser.
 
-This tool is available in two versions:
-1. **PHP Version**: Server-side processing with form submission
-2. **HTML/JavaScript Version**: Client-side processing with real-time updates
-
-Both versions provide the same genetic accuracy, with the JavaScript version offering enhanced user experience through real-time updates and visual feedback.
+Provide genetic accuracy with the JavaScript offering enhanced user experience through real-time updates and visual feedback.
 
 ## ✨ Features
 
@@ -331,12 +327,6 @@ The calculator includes comprehensive coverage of budgerigar mutations across mu
 3. **Use**: Select parent characteristics and see real-time results
 4. **No Installation Required**: Works offline after initial download
 
-### PHP Version
-
-1. **Requirements**: PHP 7.4+ and a web server
-2. **Installation**: Upload `budgerigar_calculator.php` to your server
-3. **Access**: Navigate to the file URL in your browser
-4. **Use**: Fill out the form and submit to see results
 
 ### Quick Start Guide
 
