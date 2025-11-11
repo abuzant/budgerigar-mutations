@@ -510,7 +510,7 @@ The **Advanced Budgerigar Genetics Calculator v2.0** represents the pinnacle of 
 ---
 
 ### 🌟 **Ready to revolutionize your breeding program?**
-# **[Download Now - It's Free!](budgerigar-genetics-calculator (v2).html)**
+# **[Download Now - It's Free!](budgerigar-genetics-calculator \(v2\).html)**
 
 ---
 
