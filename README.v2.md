@@ -510,7 +510,19 @@ The **Advanced Budgerigar Genetics Calculator v2.0** represents the pinnacle of 
 ---
 
 ### 🌟 **Ready to revolutionize your breeding program?**
-# **[Download Now - It's Free!](budgerigar-genetics-calculator \(v2\).html)**
+
+---
+
+## 👨‍💻 Author & Contact
+
+**Ruslan Abuzant**  
+📧 Email: [ruslan@abuzant.com](mailto:ruslan@abuzant.com)  
+🌐 Website: [https://abuzant.com](https://abuzant.com)  
+💼 LinkedIn: [linkedin.com/in/ruslanabuzant](https://linkedin.com/in/ruslanabuzant)  
+
+For project support and inquiries:  
+📧 [hello@thetradevisor.com](mailto:hello@thetradevisor.com)  
+🌐 [https://thetradevisor.com](https://thetradevisor.com)
 
 ---
 
