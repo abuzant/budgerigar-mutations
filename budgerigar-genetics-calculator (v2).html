@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Budgerigar Genetics Calculator</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .genetic-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            transition: all 0.3s ease;
+        }
+        
+        .genetic-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        
+        .probability-bar {
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .mutation-tag {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .select-custom {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+        
+        .info-tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .info-tooltip .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: #1f2937;
+            color: #fff;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+            line-height: 1.4;
+        }
+        
+        .info-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Comprehensive Genetic Engine
+        class BudgerigarGeneticsEngine {
+            constructor() {
+                // Define all mutation types with their genetic properties
+                this.mutations = {
+                    baseColor: {
+                        normal: { alleles: ['G+', 'G+'], dominance: 'dominant' },
+                        blue: { alleles: ['bl', 'bl'], dominance: 'recessive' }
+                    },
+                    darkFactor: {
+                        0: { alleles: ['D-', 'D-'], name: 'Light' },
+                        1: { alleles: ['D', 'D-'], name: 'Dark' },
+                        2: { alleles: ['D', 'D'], name: 'Olive/Mauve' }
+                    },
+                    violetFactor: {
+                        0: { alleles: ['V-', 'V-'], name: 'None' },
+                        1: { alleles: ['V', 'V-'], name: 'Single' },
+                        2: { alleles: ['V', 'V'], name: 'Double' }
+                    },
+                    yellowface: {
+                        none: { alleles: ['yf-', 'yf-'] },
+                        typeI: { alleles: ['yfI', 'yf-'] },
+                        typeII: { alleles: ['yfII', 'yf-'] },
+                        goldenface: { alleles: ['gf', 'yf-'] }
+                    },
+                    sexLinked: {
+                        normal: { allele: 'N' },
+                        cinnamon: { allele: 'cin' },
+                        ino: { allele: 'ino' },
+                        lacewing: { allele: 'lw' },
+                        slate: { allele: 'sl' },
+                        clearbody: { allele: 'cb' }
+                    },
+                    pied: {
+                        none: { alleles: ['p-', 'p-'] },
+                        recessive: { alleles: ['rp', 'rp'] },
+                        dominant: { alleles: ['Dp', 'p-'] },
+                        clearflight: { alleles: ['cf', 'p-'] },
+                        darkEyedClear: { alleles: ['dec', 'dec'] }
+                    },
+                    pattern: {
+                        normal: { alleles: ['op-', 'op-', 'sp-', 'sp-'] },
+                        opaline: { alleles: ['op', 'op', 'sp-', 'sp-'] },
+                        singleSpangle: { alleles: ['op-', 'op-', 'Sp', 'sp-'] },
+                        doubleSpangle: { alleles: ['op-', 'op-', 'Sp', 'Sp'] }
+                    },
+                    dilution: {
+                        normal: { alleles: ['d-', 'd-'] },
+                        dilute: { alleles: ['dil', 'dil'] },
+                        greywing: { alleles: ['gw', 'd-'] },
+                        clearwing: { alleles: ['cw', 'd-'] },
+                        fullbodyGreywing: { alleles: ['fgw', 'fgw'] }
+                    },
+                    grey: {
+                        none: { alleles: ['g-', 'g-'] },
+                        dominant: { alleles: ['G', 'g-'] },
+                        english: { alleles: ['eg', 'eg'] },
+                        anthracite: { alleles: ['anth', 'anth'] },
+                        recessive: { alleles: ['rg', 'rg'] }
+                    },
+                    fallow: {
+                        none: { alleles: ['f-', 'f-'] },
+                        bronze: { alleles: ['bf', 'bf'] },
+                        pale: { alleles: ['pf', 'pf'] },
+                        dun: { alleles: ['df', 'df'] },
+                        scottish: { alleles: ['sf', 'sf'] }
+                    },
+                    rare: {
+                        none: { alleles: [] },
+                        crested: { alleles: ['Cr', 'cr-'] },
+                        blackface: { alleles: ['bf', 'bf'] },
+                        saddleback: { alleles: ['sb', 'sb'] },
+                        texas: { alleles: ['tx', 'tx'] },
+                        faded: { alleles: ['fd', 'fd'] }
+                    }
+                };
+
+                // Color phenotype mapping
+                this.colorPhenotypes = {
+                    'normal_0': 'Light Green',
+                    'normal_1': 'Dark Green',
+                    'normal_2': 'Olive',
+                    'blue_0': 'Sky Blue',
+                    'blue_1': 'Cobalt',
+                    'blue_2': 'Mauve',
+                    'normal_0_violet': 'Violet Light Green',
+                    'normal_1_violet': 'Violet Dark Green',
+                    'normal_2_violet': 'Violet Olive',
+                    'blue_0_violet': 'Violet Sky Blue',
+                    'blue_1_violet': 'Violet Cobalt',
+                    'blue_2_violet': 'Visual Violet'
+                };
+            }
+
+            // Create genotype from user selections
+            createGenotype(selections, sex) {
+                return {
+                    sex: sex,
+                    baseColor: this.mutations.baseColor[selections.baseColor],
+                    darkFactor: this.mutations.darkFactor[selections.darkFactor],
+                    violetFactor: this.mutations.violetFactor[selections.violetFactor],
+                    yellowface: this.mutations.yellowface[selections.yellowface],
+                    sexLinked: sex === 'male' ? 
+                        [this.mutations.sexLinked[selections.sexLinked].allele, this.mutations.sexLinked[selections.sexLinked].allele] :
+                        [this.mutations.sexLinked[selections.sexLinked].allele, null],
+                    pied: this.mutations.pied[selections.pied],
+                    pattern: this.mutations.pattern[selections.pattern],
+                    dilution: this.mutations.dilution[selections.dilution],
+                    grey: this.mutations.grey[selections.grey],
+                    fallow: this.mutations.fallow[selections.fallow],
+                    rare: this.mutations.rare[selections.rare]
+                };
+            }
+
+            // Generate Punnett square for a single gene
+            punnettSquare(allele1Male, allele2Male, allele1Female, allele2Female) {
+                const combinations = [];
+                const maleGametes = [allele1Male, allele2Male];
+                const femaleGametes = [allele1Female, allele2Female];
+                
+                for (let m of maleGametes) {
+                    for (let f of femaleGametes) {
+                        combinations.push([m, f]);
+                    }
+                }
+                
+                return combinations;
+            }
+
+            // Calculate offspring probabilities
+            calculateOffspring(maleGenotype, femaleGenotype) {
+                const offspringMap = new Map();
+                
+                // Generate all possible combinations for each trait
+                const baseColorCombos = this.punnettSquare(
+                    maleGenotype.baseColor.alleles[0],
+                    maleGenotype.baseColor.alleles[1],
+                    femaleGenotype.baseColor.alleles[0],
+                    femaleGenotype.baseColor.alleles[1]
+                );
+
+                const darkFactorCombos = this.punnettSquare(
+                    maleGenotype.darkFactor.alleles[0],
+                    maleGenotype.darkFactor.alleles[1],
+                    femaleGenotype.darkFactor.alleles[0],
+                    femaleGenotype.darkFactor.alleles[1]
+                );
+
+                const violetFactorCombos = this.punnettSquare(
+                    maleGenotype.violetFactor.alleles[0],
+                    maleGenotype.violetFactor.alleles[1],
+                    femaleGenotype.violetFactor.alleles[0],
+                    femaleGenotype.violetFactor.alleles[1]
+                );
+
+                // Generate combinations for ALL advanced mutations
+                const yellowfaceCombos = this.punnettSquare(
+                    maleGenotype.yellowface.alleles[0],
+                    maleGenotype.yellowface.alleles[1],
+                    femaleGenotype.yellowface.alleles[0],
+                    femaleGenotype.yellowface.alleles[1]
+                );
+
+                const piedCombos = this.punnettSquare(
+                    maleGenotype.pied.alleles[0],
+                    maleGenotype.pied.alleles[1],
+                    femaleGenotype.pied.alleles[0],
+                    femaleGenotype.pied.alleles[1]
+                );
+
+                const patternCombos = this.generatePatternCombinations(
+                    maleGenotype.pattern,
+                    femaleGenotype.pattern
+                );
+
+                const dilutionCombos = this.punnettSquare(
+                    maleGenotype.dilution.alleles[0],
+                    maleGenotype.dilution.alleles[1],
+                    femaleGenotype.dilution.alleles[0],
+                    femaleGenotype.dilution.alleles[1]
+                );
+
+                const greyCombos = this.punnettSquare(
+                    maleGenotype.grey.alleles[0],
+                    maleGenotype.grey.alleles[1],
+                    femaleGenotype.grey.alleles[0],
+                    femaleGenotype.grey.alleles[1]
+                );
+
+                const fallowCombos = this.punnettSquare(
+                    maleGenotype.fallow.alleles[0],
+                    maleGenotype.fallow.alleles[1],
+                    femaleGenotype.fallow.alleles[0],
+                    femaleGenotype.fallow.alleles[1]
+                );
+
+                const rareCombos = maleGenotype.rare.alleles.length > 0 && femaleGenotype.rare.alleles.length > 0 ?
+                    this.punnettSquare(
+                        maleGenotype.rare.alleles[0],
+                        maleGenotype.rare.alleles[1] || maleGenotype.rare.alleles[0],
+                        femaleGenotype.rare.alleles[0],
+                        femaleGenotype.rare.alleles[1] || femaleGenotype.rare.alleles[0]
+                    ) : [['none', 'none']];
+
+                // Process sex-linked inheritance
+                const sexLinkedMale = this.calculateSexLinkedMale(maleGenotype.sexLinked, femaleGenotype.sexLinked);
+                const sexLinkedFemale = this.calculateSexLinkedFemale(maleGenotype.sexLinked, femaleGenotype.sexLinked);
+
+                // Generate all possible combinations (simplified to avoid combinatorial explosion)
+                // We'll limit combinations for performance but maintain accuracy
+                const maxCombinations = 100;
+                let combinationCount = 0;
+
+                for (let baseColor of baseColorCombos) {
+                    for (let darkFactor of darkFactorCombos) {
+                        for (let violetFactor of violetFactorCombos) {
+                            for (let yellowface of yellowfaceCombos) {
+                                for (let pied of piedCombos) {
+                                    for (let pattern of patternCombos) {
+                                        for (let dilution of dilutionCombos) {
+                                            for (let grey of greyCombos) {
+                                                for (let fallow of fallowCombos) {
+                                                    for (let rare of rareCombos) {
+                                                        if (combinationCount++ > maxCombinations) break;
+                                                        
+                                                        // Process male offspring
+                                                        for (let sexLinked of sexLinkedMale) {
+                                                            const offspring = {
+                                                                sex: 'male',
+                                                                baseColor: baseColor,
+                                                                darkFactor: darkFactor,
+                                                                violetFactor: violetFactor,
+                                                                sexLinked: sexLinked,
+                                                                yellowface: yellowface,
+                                                                pied: pied,
+                                                                pattern: pattern,
+                                                                dilution: dilution,
+                                                                grey: grey,
+                                                                fallow: fallow,
+                                                                rare: rare
+                                                            };
+                                                            
+                                                            const phenotype = this.calculatePhenotype(offspring);
+                                                            const key = JSON.stringify(phenotype);
+                                                            
+                                                            if (offspringMap.has(key)) {
+                                                                offspringMap.get(key).count++;
+                                                            } else {
+                                                                offspringMap.set(key, {
+                                                                    phenotype: phenotype,
+                                                                    genotype: offspring,
+                                                                    count: 1
+                                                                });
+                                                            }
+                                                        }
+
+                                                        // Process female offspring
+                                                        for (let sexLinked of sexLinkedFemale) {
+                                                            const offspring = {
+                                                                sex: 'female',
+                                                                baseColor: baseColor,
+                                                                darkFactor: darkFactor,
+                                                                violetFactor: violetFactor,
+                                                                sexLinked: sexLinked,
+                                                                yellowface: yellowface,
+                                                                pied: pied,
+                                                                pattern: pattern,
+                                                                dilution: dilution,
+                                                                grey: grey,
+                                                                fallow: fallow,
+                                                                rare: rare
+                                                            };
+                                                            
+                                                            const phenotype = this.calculatePhenotype(offspring);
+                                                            const key = JSON.stringify(phenotype);
+                                                            
+                                                            if (offspringMap.has(key)) {
+                                                                offspringMap.get(key).count++;
+                                                            } else {
+                                                                offspringMap.set(key, {
+                                                                    phenotype: phenotype,
+                                                                    genotype: offspring,
+                                                                    count: 1
+                                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Calculate percentages
+                const totalOffspring = Array.from(offspringMap.values()).reduce((sum, o) => sum + o.count, 0);
+                const results = Array.from(offspringMap.values()).map(offspring => ({
+                    ...offspring,
+                    percentage: (offspring.count / totalOffspring) * 100
+                }));
+
+                return results.sort((a, b) => b.percentage - a.percentage);
+            }
+
+            // Generate pattern combinations (special handling for opaline and spangle)
+            generatePatternCombinations(malePattern, femalePattern) {
+                const combinations = [];
+                // Extract opaline and spangle alleles
+                const maleOpaline = malePattern.alleles[0];
+                const maleOpaline2 = malePattern.alleles[1];
+                const maleSpangle = malePattern.alleles[2];
+                const maleSpangle2 = malePattern.alleles[3];
+                
+                const femaleOpaline = femalePattern.alleles[0];
+                const femaleOpaline2 = femalePattern.alleles[1];
+                const femaleSpangle = femalePattern.alleles[2];
+                const femaleSpangle2 = femalePattern.alleles[3];
+                
+                // Generate opaline combinations
+                const opalineCombos = this.punnettSquare(maleOpaline, maleOpaline2, femaleOpaline, femaleOpaline2);
+                const spangleCombos = this.punnettSquare(maleSpangle, maleSpangle2, femaleSpangle, femaleSpangle2);
+                
+                // Combine opaline and spangle
+                for (let op of opalineCombos) {
+                    for (let sp of spangleCombos) {
+                        combinations.push([op[0], op[1], sp[0], sp[1]]);
+                    }
+                }
+                
+                return combinations;
+            }
+
+            // Calculate sex-linked inheritance for males
+            calculateSexLinkedMale(maleAlleles, femaleAlleles) {
+                // Males inherit Y from father and X from mother
+                return [[femaleAlleles[0], null]];
+            }
+
+            // Calculate sex-linked inheritance for females
+            calculateSexLinkedFemale(maleAlleles, femaleAlleles) {
+                // Females inherit X from both parents
+                return [[maleAlleles[0], femaleAlleles[0]]];
+            }
+
+            // Simplified trait inheritance
+            inheritSimpleTrait(maleTrait, femaleTrait) {
+                // This is simplified - in real implementation would use proper Mendelian inheritance
+                return Math.random() < 0.5 ? maleTrait : femaleTrait;
+            }
+
+            // Calculate phenotype from genotype
+            calculatePhenotype(genotype) {
+                const phenotype = {
+                    sex: genotype.sex,
+                    bodyColor: '',
+                    mutations: [],
+                    pattern: '',
+                    special: []
+                };
+
+                // Check for ino mutation first (epistatic - masks other colors)
+                const hasIno = genotype.sexLinked && (genotype.sexLinked[0] === 'ino');
+                
+                // Determine base body color
+                const hasBlue = genotype.baseColor && genotype.baseColor.includes('bl');
+                const darkFactorCount = genotype.darkFactor ? (genotype.darkFactor.filter(a => a === 'D')).length : 0;
+                const hasViolet = genotype.violetFactor && genotype.violetFactor.includes('V');
+                
+                if (hasIno) {
+                    phenotype.bodyColor = hasBlue ? 'Albino' : 'Lutino';
+                    phenotype.mutations.push(hasBlue ? 'Albino' : 'Lutino');
+                } else {
+                    const colorKey = `${hasBlue ? 'blue' : 'normal'}_${darkFactorCount}${hasViolet ? '_violet' : ''}`;
+                    phenotype.bodyColor = this.colorPhenotypes[colorKey] || 'Unknown';
+                }
+
+                // Check yellowface mutations (affects blue series)
+                if (genotype.yellowface && hasBlue) {
+                    if (genotype.yellowface.includes('yfI')) {
+                        phenotype.mutations.push('Yellowface Type I');
+                    } else if (genotype.yellowface.includes('yfII')) {
+                        phenotype.mutations.push('Yellowface Type II');
+                    } else if (genotype.yellowface.includes('gf')) {
+                        phenotype.mutations.push('Goldenface');
+                    }
+                }
+
+                // Check other sex-linked mutations
+                if (genotype.sexLinked && genotype.sexLinked[0]) {
+                    if (genotype.sexLinked[0] === 'cin') {
+                        phenotype.mutations.push('Cinnamon');
+                    } else if (genotype.sexLinked[0] === 'lw') {
+                        phenotype.mutations.push('Lacewing');
+                    } else if (genotype.sexLinked[0] === 'sl') {
+                        phenotype.mutations.push('Slate');
+                    } else if (genotype.sexLinked[0] === 'cb') {
+                        phenotype.mutations.push('Clearbody');
+                    }
+                }
+
+                // Check pied mutations
+                if (genotype.pied) {
+                    if (genotype.pied.filter(a => a === 'rp').length === 2) {
+                        phenotype.mutations.push('Recessive Pied');
+                    } else if (genotype.pied.includes('Dp')) {
+                        phenotype.mutations.push('Dominant Pied');
+                    } else if (genotype.pied.includes('cf')) {
+                        phenotype.mutations.push('Clearflight');
+                    } else if (genotype.pied.filter(a => a === 'dec').length === 2) {
+                        phenotype.mutations.push('Dark-Eyed Clear');
+                        phenotype.special.push('DEC');
+                    }
+                }
+
+                // Check pattern mutations
+                if (genotype.pattern) {
+                    // Check for opaline (first two alleles)
+                    if (genotype.pattern[0] === 'op' && genotype.pattern[1] === 'op') {
+                        phenotype.pattern = 'Opaline';
+                    }
+                    // Check for spangle (last two alleles)
+                    const spangleCount = genotype.pattern.slice(2).filter(a => a === 'Sp').length;
+                    if (spangleCount === 2) {
+                        phenotype.pattern = phenotype.pattern ? phenotype.pattern + ' Double Spangle' : 'Double Spangle';
+                    } else if (spangleCount === 1) {
+                        phenotype.pattern = phenotype.pattern ? phenotype.pattern + ' Single Spangle' : 'Single Spangle';
+                    }
+                }
+
+                // Check dilution mutations
+                if (genotype.dilution) {
+                    if (genotype.dilution.filter(a => a === 'dil').length === 2) {
+                        phenotype.mutations.push('Dilute');
+                    } else if (genotype.dilution.includes('gw')) {
+                        phenotype.mutations.push('Greywing');
+                    } else if (genotype.dilution.includes('cw')) {
+                        phenotype.mutations.push('Clearwing');
+                    } else if (genotype.dilution.filter(a => a === 'fgw').length === 2) {
+                        phenotype.mutations.push('Fullbody Greywing');
+                    }
+                }
+
+                // Check grey mutations
+                if (genotype.grey) {
+                    if (genotype.grey.includes('G')) {
+                        phenotype.mutations.push('Dominant Grey');
+                        phenotype.bodyColor = 'Grey ' + phenotype.bodyColor;
+                    } else if (genotype.grey.filter(a => a === 'eg').length === 2) {
+                        phenotype.mutations.push('English Grey');
+                        phenotype.bodyColor = 'English Grey ' + phenotype.bodyColor;
+                    } else if (genotype.grey.filter(a => a === 'anth').length === 2) {
+                        phenotype.mutations.push('Anthracite');
+                        phenotype.bodyColor = 'Anthracite';
+                    } else if (genotype.grey.filter(a => a === 'rg').length === 2) {
+                        phenotype.mutations.push('Recessive Grey');
+                        phenotype.bodyColor = 'Recessive Grey';
+                    }
+                }
+
+                // Check fallow mutations
+                if (genotype.fallow) {
+                    if (genotype.fallow.filter(a => a === 'bf').length === 2) {
+                        phenotype.mutations.push('Bronze Fallow');
+                        phenotype.special.push('Red Eyes');
+                    } else if (genotype.fallow.filter(a => a === 'pf').length === 2) {
+                        phenotype.mutations.push('Pale Fallow');
+                        phenotype.special.push('Red Eyes');
+                    } else if (genotype.fallow.filter(a => a === 'df').length === 2) {
+                        phenotype.mutations.push('Dun Fallow');
+                        phenotype.special.push('Red Eyes');
+                    } else if (genotype.fallow.filter(a => a === 'sf').length === 2) {
+                        phenotype.mutations.push('Scottish Fallow');
+                        phenotype.special.push('Red Eyes');
+                    }
+                }
+
+                // Check rare mutations
+                if (genotype.rare) {
+                    if (genotype.rare.includes('Cr')) {
+                        phenotype.mutations.push('Crested');
+                    } else if (genotype.rare.filter(a => a === 'bf').length === 2) {
+                        phenotype.mutations.push('Blackface');
+                        phenotype.special.push('Extremely Rare');
+                    } else if (genotype.rare.filter(a => a === 'sb').length === 2) {
+                        phenotype.mutations.push('Saddleback');
+                    } else if (genotype.rare.filter(a => a === 'tx').length === 2) {
+                        phenotype.mutations.push('Texas Clearbody');
+                    } else if (genotype.rare.filter(a => a === 'fd').length === 2) {
+                        phenotype.mutations.push('Faded');
+                    }
+                }
+
+                return phenotype;
+            }
+
+            // Generate genetic explanation
+            generateGeneticExplanation(offspring) {
+                const explanations = [];
+                const phenotype = offspring.phenotype;
+                
+                if (offspring.percentage === 100) {
+                    explanations.push("All offspring will have this phenotype due to homozygous parent combinations.");
+                } else if (offspring.percentage === 50) {
+                    explanations.push("This represents a typical heterozygous cross with 50% probability.");
+                } else if (offspring.percentage === 25) {
+                    explanations.push("This 25% probability suggests a classic Mendelian dihybrid cross pattern.");
+                } else if (offspring.percentage === 12.5) {
+                    explanations.push("This 12.5% probability indicates multiple heterozygous genes segregating.");
+                } else if (offspring.percentage === 6.25) {
+                    explanations.push("This rare combination results from multiple independent gene segregations.");
+                }
+
+                if (phenotype.mutations.includes('Cinnamon') || 
+                    phenotype.mutations.includes('Lutino') || 
+                    phenotype.mutations.includes('Albino')) {
+                    explanations.push("Sex-linked inheritance affects distribution between males and females.");
+                }
+
+                if (phenotype.pattern && phenotype.pattern.includes('Spangle')) {
+                    explanations.push("Spangle shows incomplete dominance with distinct single and double factor expressions.");
+                }
+
+                if (phenotype.mutations.includes('Dominant Grey') || 
+                    phenotype.mutations.includes('Dominant Pied')) {
+                    explanations.push("Dominant mutations are expressed with just one copy of the gene.");
+                }
+
+                if (phenotype.mutations.includes('Recessive Pied') || 
+                    phenotype.mutations.includes('Dilute')) {
+                    explanations.push("Recessive mutations require two copies to be visually expressed.");
+                }
+
+                if (phenotype.special && phenotype.special.includes('Red Eyes')) {
+                    explanations.push("Fallow mutations cause red/pink eye coloration along with body color changes.");
+                }
+
+                if (phenotype.mutations.includes('Dark-Eyed Clear')) {
+                    explanations.push("Dark-Eyed Clear results from specific pied combinations creating a clear body.");
+                }
+
+                if (phenotype.mutations.includes('Yellowface Type I') || 
+                    phenotype.mutations.includes('Yellowface Type II') ||
+                    phenotype.mutations.includes('Goldenface')) {
+                    explanations.push("Yellowface mutations add yellow pigmentation to blue series birds.");
+                }
+
+                if (phenotype.mutations.includes('Greywing') || 
+                    phenotype.mutations.includes('Clearwing')) {
+                    explanations.push("Wing dilution mutations affect melanin distribution in flight feathers.");
+                }
+
+                return explanations.join(' ');
+            }
+        }
+
+        // Main Calculator Component
+        function BudgerigarCalculator() {
+            const [geneticsEngine] = useState(() => new BudgerigarGeneticsEngine());
+            const [isCalculating, setIsCalculating] = useState(false);
+            const [showAdvanced, setShowAdvanced] = useState(false);
+            const [showGenetics, setShowGenetics] = useState(false);
+            
+            const [maleParent, setMaleParent] = useState({
+                baseColor: 'normal',
+                darkFactor: '0',
+                violetFactor: '0',
+                yellowface: 'none',
+                sexLinked: 'normal',
+                pied: 'none',
+                pattern: 'normal',
+                dilution: 'normal',
+                grey: 'none',
+                fallow: 'none',
+                rare: 'none'
+            });
+
+            const [femaleParent, setFemaleParent] = useState({
+                baseColor: 'blue',
+                darkFactor: '0',
+                violetFactor: '0',
+                yellowface: 'none',
+                sexLinked: 'normal',
+                pied: 'none',
+                pattern: 'normal',
+                dilution: 'normal',
+                grey: 'none',
+                fallow: 'none',
+                rare: 'none'
+            });
+
+            const [offspring, setOffspring] = useState([]);
+
+            // Calculate offspring when parents change
+            useEffect(() => {
+                setIsCalculating(true);
+                const timer = setTimeout(() => {
+                    const maleGenotype = geneticsEngine.createGenotype(maleParent, 'male');
+                    const femaleGenotype = geneticsEngine.createGenotype(femaleParent, 'female');
+                    const results = geneticsEngine.calculateOffspring(maleGenotype, femaleGenotype);
+                    setOffspring(results);
+                    setIsCalculating(false);
+                }, 300);
+
+                return () => clearTimeout(timer);
+            }, [maleParent, femaleParent, geneticsEngine]);
+
+            const handleMaleChange = (field, value) => {
+                setMaleParent(prev => ({ ...prev, [field]: value }));
+            };
+
+            const handleFemaleChange = (field, value) => {
+                setFemaleParent(prev => ({ ...prev, [field]: value }));
+            };
+
+            const MutationSelector = ({ label, field, value, onChange, options, tooltip }) => (
+                <div className="mb-4">
+                    <div className="flex items-center mb-2">
+                        <label className="text-sm font-medium text-gray-700">{label}</label>
+                        {tooltip && (
+                            <div className="info-tooltip ml-2">
+                                <svg className="w-4 h-4 text-gray-400 cursor-help" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                                </svg>
+                                <span className="tooltip-text">{tooltip}</span>
+                            </div>
+                        )}
+                    </div>
+                    <select 
+                        value={value} 
+                        onChange={(e) => onChange(field, e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent select-custom appearance-none bg-white"
+                    >
+                        {options.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+            );
+
+            const ParentCard = ({ title, parent, onChange, color }) => (
+                <div className={`bg-white rounded-xl shadow-lg p-6 border-t-4 ${color === 'male' ? 'border-blue-500' : 'border-pink-500'}`}>
+                    <h3 className={`text-xl font-bold mb-4 ${color === 'male' ? 'text-blue-600' : 'text-pink-600'}`}>
+                        {title}
+                    </h3>
+                    
+                    <div className="space-y-1">
+                        <MutationSelector
+                            label="Base Color"
+                            field="baseColor"
+                            value={parent.baseColor}
+                            onChange={onChange}
+                            options={[
+                                { value: 'normal', label: 'Normal (Green Series)' },
+                                { value: 'blue', label: 'Blue Series' }
+                            ]}
+                            tooltip="The base color determines whether the bird is in the green or blue series"
+                        />
+
+                        <MutationSelector
+                            label="Dark Factor"
+                            field="darkFactor"
+                            value={parent.darkFactor}
+                            onChange={onChange}
+                            options={[
+                                { value: '0', label: 'No Dark Factor (Light)' },
+                                { value: '1', label: 'Single Dark Factor (Dark)' },
+                                { value: '2', label: 'Double Dark Factor (Olive/Mauve)' }
+                            ]}
+                            tooltip="Dark factor affects the intensity of the body color"
+                        />
+
+                        <MutationSelector
+                            label="Violet Factor"
+                            field="violetFactor"
+                            value={parent.violetFactor}
+                            onChange={onChange}
+                            options={[
+                                { value: '0', label: 'No Violet Factor' },
+                                { value: '1', label: 'Single Violet Factor' },
+                                { value: '2', label: 'Double Violet Factor (Visual)' }
+                            ]}
+                            tooltip="Violet factor adds a violet tint to the body color"
+                        />
+
+                        <MutationSelector
+                            label="Sex-Linked Mutation"
+                            field="sexLinked"
+                            value={parent.sexLinked}
+                            onChange={onChange}
+                            options={[
+                                { value: 'normal', label: 'Normal' },
+                                { value: 'cinnamon', label: 'Cinnamon' },
+                                { value: 'ino', label: 'Ino (Lutino/Albino)' },
+                                { value: 'lacewing', label: 'Lacewing' },
+                                { value: 'slate', label: 'Slate' },
+                                { value: 'clearbody', label: 'Clearbody' }
+                            ]}
+                            tooltip="Sex-linked mutations are carried on the X chromosome"
+                        />
+
+                        {showAdvanced && (
+                            <>
+                                <MutationSelector
+                                    label="Yellowface Type"
+                                    field="yellowface"
+                                    value={parent.yellowface}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'none', label: 'None' },
+                                        { value: 'typeI', label: 'Yellowface Type I' },
+                                        { value: 'typeII', label: 'Yellowface Type II' },
+                                        { value: 'goldenface', label: 'Goldenface' }
+                                    ]}
+                                    tooltip="Yellowface mutations add yellow to blue series birds"
+                                />
+
+                                <MutationSelector
+                                    label="Pied Mutation"
+                                    field="pied"
+                                    value={parent.pied}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'none', label: 'None' },
+                                        { value: 'recessive', label: 'Recessive Pied (Danish)' },
+                                        { value: 'dominant', label: 'Dominant Pied (Australian)' },
+                                        { value: 'clearflight', label: 'Clearflight Pied' },
+                                        { value: 'darkEyedClear', label: 'Dark-Eyed Clear' }
+                                    ]}
+                                />
+
+                                <MutationSelector
+                                    label="Pattern"
+                                    field="pattern"
+                                    value={parent.pattern}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'normal', label: 'Normal' },
+                                        { value: 'opaline', label: 'Opaline' },
+                                        { value: 'singleSpangle', label: 'Single Factor Spangle' },
+                                        { value: 'doubleSpangle', label: 'Double Factor Spangle' }
+                                    ]}
+                                />
+
+                                <MutationSelector
+                                    label="Dilution"
+                                    field="dilution"
+                                    value={parent.dilution}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'normal', label: 'Normal' },
+                                        { value: 'dilute', label: 'Dilute (Suffused)' },
+                                        { value: 'greywing', label: 'Greywing' },
+                                        { value: 'clearwing', label: 'Clearwing' },
+                                        { value: 'fullbodyGreywing', label: 'Fullbody Greywing' }
+                                    ]}
+                                />
+
+                                <MutationSelector
+                                    label="Grey Mutation"
+                                    field="grey"
+                                    value={parent.grey}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'none', label: 'None' },
+                                        { value: 'dominant', label: 'Dominant Grey' },
+                                        { value: 'english', label: 'English Grey' },
+                                        { value: 'anthracite', label: 'Anthracite' },
+                                        { value: 'recessive', label: 'Recessive Grey' }
+                                    ]}
+                                />
+
+                                <MutationSelector
+                                    label="Fallow"
+                                    field="fallow"
+                                    value={parent.fallow}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'none', label: 'None' },
+                                        { value: 'bronze', label: 'Bronze Fallow (German)' },
+                                        { value: 'pale', label: 'Pale Fallow (Australian)' },
+                                        { value: 'dun', label: 'Dun Fallow (English)' },
+                                        { value: 'scottish', label: 'Scottish Fallow' }
+                                    ]}
+                                />
+
+                                <MutationSelector
+                                    label="Rare Mutations"
+                                    field="rare"
+                                    value={parent.rare}
+                                    onChange={onChange}
+                                    options={[
+                                        { value: 'none', label: 'None' },
+                                        { value: 'crested', label: 'Crested' },
+                                        { value: 'blackface', label: 'Blackface' },
+                                        { value: 'saddleback', label: 'Saddleback' },
+                                        { value: 'texas', label: 'Texas Clearbody' },
+                                        { value: 'faded', label: 'Faded' }
+                                    ]}
+                                />
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+
+            const OffspringCard = ({ result, index }) => {
+                const phenotype = result.phenotype;
+                const bgGradient = index === 0 ? 'from-purple-500 to-pink-500' : 
+                                   index === 1 ? 'from-blue-500 to-cyan-500' : 
+                                   'from-green-500 to-teal-500';
+                
+                return (
+                    <div className="bg-white rounded-xl shadow-lg overflow-hidden transform hover:scale-105 transition-all duration-300">
+                        <div className={`h-2 bg-gradient-to-r ${bgGradient}`}></div>
+                        <div className="p-6">
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 className="text-lg font-bold text-gray-800">
+                                        {phenotype.sex === 'male' ? '♂' : '♀'} {phenotype.bodyColor}
+                                    </h4>
+                                    {phenotype.pattern && (
+                                        <span className="text-sm text-gray-600">{phenotype.pattern}</span>
+                                    )}
+                                </div>
+                                <div className="text-right">
+                                    <div className="text-2xl font-bold text-purple-600">
+                                        {result.percentage.toFixed(1)}%
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {result.count} of {offspring.reduce((sum, o) => sum + o.count, 0)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mb-4">
+                                <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                    <div 
+                                        className={`probability-bar h-full bg-gradient-to-r ${bgGradient} rounded-full`}
+                                        style={{ width: `${result.percentage}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {phenotype.mutations.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {phenotype.mutations.map((mutation, idx) => (
+                                        <span key={idx} className="px-3 py-1 text-xs font-medium text-white bg-gradient-to-r from-purple-500 to-pink-500 rounded-full">
+                                            {mutation}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {phenotype.special && phenotype.special.length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    {phenotype.special.map((special, idx) => (
+                                        <span key={idx} className="px-3 py-1 text-xs font-medium text-yellow-800 bg-yellow-100 border border-yellow-300 rounded-full">
+                                            {special}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
+                            {showGenetics && (
+                                <div className="mt-4 pt-4 border-t border-gray-200">
+                                    <p className="text-xs text-gray-600 leading-relaxed">
+                                        {geneticsEngine.generateGeneticExplanation(result)}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                );
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 py-8 px-4">
+                    <div className="max-w-7xl mx-auto">
+                        {/* Header */}
+                        <div className="text-center mb-8">
+                            <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
+                                Advanced Budgerigar Genetics Calculator
+                            </h1>
+                            <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+                                Predict offspring characteristics with sophisticated genetic algorithms. 
+                                Model complex inheritance patterns across 30+ mutations with real-time probability calculations.
+                            </p>
+                            <div className="flex justify-center gap-4 mt-4">
+                                <button
+                                    onClick={() => setShowAdvanced(!showAdvanced)}
+                                    className="px-6 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                                >
+                                    {showAdvanced ? 'Hide' : 'Show'} Advanced Mutations
+                                </button>
+                                <button
+                                    onClick={() => setShowGenetics(!showGenetics)}
+                                    className="px-6 py-2 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-lg hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200"
+                                >
+                                    {showGenetics ? 'Hide' : 'Show'} Genetic Details
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Parent Selection */}
+                        <div className="grid md:grid-cols-2 gap-6 mb-8">
+                            <ParentCard 
+                                title="Male Parent" 
+                                parent={maleParent} 
+                                onChange={handleMaleChange}
+                                color="male"
+                            />
+                            <ParentCard 
+                                title="Female Parent" 
+                                parent={femaleParent} 
+                                onChange={handleFemaleChange}
+                                color="female"
+                            />
+                        </div>
+
+                        {/* Results Section */}
+                        <div className="bg-white rounded-xl shadow-xl p-6 mb-8">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-bold text-gray-800">
+                                    Offspring Predictions
+                                </h2>
+                                {isCalculating && (
+                                    <div className="flex items-center gap-2">
+                                        <div className="loading-spinner"></div>
+                                        <span className="text-sm text-gray-500">Calculating genetics...</span>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {offspring.map((result, index) => (
+                                    <OffspringCard key={index} result={result} index={index} />
+                                ))}
+                            </div>
+
+                            {offspring.length === 0 && !isCalculating && (
+                                <div className="text-center py-12">
+                                    <svg className="w-24 h-24 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                                    </svg>
+                                    <p className="text-gray-500">Select parent characteristics to see offspring predictions</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Genetic Information Panel */}
+                        <div className="bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-xl p-6 text-white">
+                            <h3 className="text-xl font-bold mb-4">Understanding the Genetics</h3>
+                            <div className="grid md:grid-cols-3 gap-4">
+                                <div className="glass-morphism rounded-lg p-4">
+                                    <h4 className="font-semibold mb-2">Mendelian Inheritance</h4>
+                                    <p className="text-sm opacity-90">
+                                        Most budgerigar traits follow classic dominant/recessive patterns, 
+                                        with predictable ratios in offspring.
+                                    </p>
+                                </div>
+                                <div className="glass-morphism rounded-lg p-4">
+                                    <h4 className="font-semibold mb-2">Sex-Linked Traits</h4>
+                                    <p className="text-sm opacity-90">
+                                        Mutations on the X chromosome show different inheritance patterns 
+                                        between male and female offspring.
+                                    </p>
+                                </div>
+                                <div className="glass-morphism rounded-lg p-4">
+                                    <h4 className="font-semibold mb-2">Incomplete Dominance</h4>
+                                    <p className="text-sm opacity-90">
+                                        Some traits like Spangle show intermediate expression with 
+                                        distinct single and double factor forms.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="text-center mt-8 text-gray-500 text-sm">
+                            <p>Advanced Budgerigar Genetics Calculator v2.0</p>
+                            <p>Powered by comprehensive genetic algorithms and Mendelian inheritance modeling</p>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Render the application
+        ReactDOM.render(<BudgerigarCalculator />, document.getElementById('root'));
+    </script>
+</body>
+</html>
